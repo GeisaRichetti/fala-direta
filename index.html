@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Fala Direta" />
+  <title>Fala Direta — Curso de Oratória</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface2: #1e1e1e;
+      --border: #2a2a2a;
+      --gold: #c9a84c;
+      --gold-light: #e8c878;
+      --cream: #f5f0e8;
+      --text: #e8e0d0;
+      --muted: #7a7268;
+      --green: #4caf7d;
+      --red: #e05c5c;
+      --blue: #5c9ce0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow: hidden; }
+    #app { height: 100vh; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; position: relative; }
+
+    /* SCREENS */
+    .screen { display: none; flex-direction: column; height: 100%; overflow-y: auto; }
+    .screen.active { display: flex; }
+
+    /* HOME */
+    .home-header {
+      padding: 60px 28px 28px;
+      background: linear-gradient(180deg, #1a1508 0%, var(--bg) 100%);
+    }
+    .home-header .greeting { font-size: 13px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+    .home-header h1 { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 900; color: var(--cream); line-height: 1.1; }
+    .home-header h1 span { color: var(--gold); }
+    .streak-bar {
+      margin: 20px 28px 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .streak-num { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 900; color: var(--gold); }
+    .streak-label { font-size: 13px; color: var(--muted); }
+    .streak-label strong { display: block; color: var(--text); font-size: 15px; }
+    .today-card {
+      margin: 20px 28px;
+      background: linear-gradient(135deg, #1e1808 0%, #1a1408 100%);
+      border: 1px solid #3a2e10;
+      border-radius: 20px;
+      padding: 24px;
+    }
+    .today-tag { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+    .today-title { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--cream); margin-bottom: 8px; line-height: 1.2; }
+    .today-desc { font-size: 14px; color: var(--muted); line-height: 1.5; margin-bottom: 20px; }
+    .btn-primary {
+      background: var(--gold);
+      color: #0a0a0a;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 28px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.2s;
+    }
+    .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+    .modules-section { padding: 0 28px 28px; }
+    .section-title { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+    .module-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .module-card:active { transform: scale(0.99); }
+    .module-card.locked { opacity: 0.45; cursor: not-allowed; }
+    .module-card.completed { border-color: var(--green); }
+    .module-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+      background: var(--surface2);
+    }
+    .module-card.completed .module-icon { background: #1a3028; }
+    .module-info { flex: 1; }
+    .module-info h3 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+    .module-info p { font-size: 13px; color: var(--muted); }
+    .module-progress-bar { height: 3px; background: var(--border); border-radius: 99px; margin-top: 8px; }
+    .module-progress-fill { height: 100%; background: var(--gold); border-radius: 99px; transition: width 0.4s; }
+    .module-badge { font-size: 18px; }
+
+    /* LESSON */
+    .lesson-header {
+      padding: 20px 20px 0;
+      display: flex; align-items: center; gap: 12px;
+      flex-shrink: 0;
+    }
+    .btn-back {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 18px; flex-shrink: 0;
+    }
+    .lesson-progress { flex: 1; }
+    .lesson-progress-bar { height: 4px; background: var(--border); border-radius: 99px; }
+    .lesson-progress-fill { height: 100%; background: var(--gold); border-radius: 99px; transition: width 0.3s; }
+    .lesson-step-count { font-size: 12px; color: var(--muted); text-align: right; margin-top: 4px; }
+    .lesson-body { flex: 1; overflow-y: auto; padding: 24px 24px 0; }
+    .step-type-badge {
+      display: inline-block; padding: 4px 12px; border-radius: 99px;
+      font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+      margin-bottom: 16px; font-weight: 500;
+    }
+    .type-teoria { background: #1a2035; color: #7aa0e0; }
+    .type-exercicio { background: #1a2810; color: #7ae070; }
+    .type-pratica { background: #2a1810; color: #e0a07a; }
+    .type-reflexao { background: #25181a; color: #e07a8a; }
+    .step-title { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--cream); line-height: 1.2; margin-bottom: 12px; }
+    .step-content { font-size: 15px; color: var(--muted); line-height: 1.8; margin-bottom: 20px; }
+    .step-content strong { color: var(--text); }
+    .highlight-box {
+      background: var(--surface);
+      border-left: 3px solid var(--gold);
+      border-radius: 0 12px 12px 0;
+      padding: 16px 18px;
+      margin: 16px 0;
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .example-box {
+      background: #0f1a0f;
+      border: 1px solid #2a4a2a;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin: 16px 0;
+    }
+    .example-box .ex-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #7ae070; margin-bottom: 8px; }
+    .example-box p { font-size: 14px; color: #c0e0c0; line-height: 1.6; }
+    .bad-box {
+      background: #1a0f0f;
+      border: 1px solid #4a2a2a;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin: 16px 0;
+    }
+    .bad-box .ex-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #e07a7a; margin-bottom: 8px; }
+    .bad-box p { font-size: 14px; color: #e0c0c0; line-height: 1.6; }
+
+    /* EXERCISE */
+    .exercise-area { margin-top: 4px; }
+    .exercise-prompt {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .exercise-prompt .prompt-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+    .exercise-prompt p { font-size: 15px; color: var(--text); line-height: 1.6; }
+    textarea {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px; color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6;
+      resize: none; min-height: 120px; outline: none;
+      transition: border-color 0.2s;
+    }
+    textarea:focus { border-color: var(--gold); }
+    .word-count { font-size: 12px; color: var(--muted); text-align: right; margin-top: 6px; }
+    .ai-feedback {
+      background: #0f1520;
+      border: 1px solid #2a3a50;
+      border-radius: 16px;
+      padding: 20px;
+      margin-top: 16px;
+    }
+    .ai-feedback .fb-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--blue); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .ai-feedback .fb-text { font-size: 14px; color: #b0c8e8; line-height: 1.7; }
+    .spinner { width: 16px; height: 16px; border: 2px solid #2a3a50; border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* TIMER */
+    .timer-ring {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 28px 0 20px;
+    }
+    .timer-circle {
+      width: 120px; height: 120px; border-radius: 50%;
+      background: var(--surface2); border: 3px solid var(--border);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .timer-number { font-family: 'Playfair Display', serif; font-size: 30px; color: var(--cream); }
+    .timer-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .timer-btns { display: flex; gap: 12px; margin-top: 16px; }
+    .btn-timer {
+      flex: 1; padding: 12px; border-radius: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); font-size: 14px; cursor: pointer; font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+    }
+    .btn-timer.active { background: var(--gold); color: #0a0a0a; border-color: var(--gold); font-weight: 600; }
+    .btn-timer:active { transform: scale(0.97); }
+
+    /* LESSON FOOTER */
+    .lesson-footer { padding: 16px 24px 32px; flex-shrink: 0; }
+    .btn-next {
+      width: 100%; padding: 16px; border-radius: 14px;
+      background: var(--gold); color: #0a0a0a;
+      border: none; font-family: 'DM Sans', sans-serif;
+      font-size: 16px; font-weight: 700; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-next:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-next:not(:disabled):active { transform: scale(0.98); }
+
+    /* COMPLETION */
+    .completion-screen { padding: 60px 32px 40px; text-align: center; }
+    .completion-icon { font-size: 64px; margin-bottom: 24px; display: block; }
+    .completion-screen h2 { font-family: 'Playfair Display', serif; font-size: 32px; color: var(--cream); margin-bottom: 12px; }
+    .completion-screen p { font-size: 16px; color: var(--muted); line-height: 1.6; margin-bottom: 32px; }
+    .xp-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #1e1808; border: 1px solid #3a2e10;
+      border-radius: 99px; padding: 10px 24px;
+      font-size: 18px; font-weight: 700; color: var(--gold);
+      margin-bottom: 32px;
+    }
+
+    /* NAV */
+    .bottom-nav {
+      display: flex; background: var(--surface); border-top: 1px solid var(--border);
+      padding: 10px 0 24px; flex-shrink: 0;
+    }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 4px; cursor: pointer; padding: 8px 0;
+      transition: all 0.2s;
+    }
+    .nav-item .nav-icon { font-size: 22px; }
+    .nav-item .nav-label { font-size: 10px; letter-spacing: 0.5px; color: var(--muted); text-transform: uppercase; }
+    .nav-item.active .nav-label { color: var(--gold); }
+    .nav-item.active .nav-icon { transform: scale(1.1); }
+
+    /* PROFILE */
+    .profile-header { padding: 60px 28px 24px; }
+    .profile-header h2 { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--cream); margin-bottom: 4px; }
+    .profile-header p { font-size: 14px; color: var(--muted); }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 28px 24px; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; }
+    .stat-num { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--gold); }
+    .stat-label { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .achievements { padding: 0 28px 40px; }
+    .achievement-item {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 14px 16px; margin-bottom: 10px;
+    }
+    .achievement-item.locked { opacity: 0.4; }
+    .ach-icon { font-size: 28px; }
+    .ach-info h4 { font-size: 15px; font-weight: 600; color: var(--text); }
+    .ach-info p { font-size: 12px; color: var(--muted); }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 0; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HOME SCREEN -->
+  <div class="screen active" id="screen-home">
+    <div style="overflow-y:auto; flex:1; padding-bottom: 8px;">
+      <div class="home-header">
+        <div class="greeting">Seu curso</div>
+        <h1>Fala <span>Direta.</span></h1>
+      </div>
+
+      <div class="streak-bar">
+        <div class="streak-num" id="streak-display">0</div>
+        <div>
+          <div class="streak-label"><strong id="streak-text">Comece hoje</strong>dias seguidos</div>
+        </div>
+        <div style="margin-left:auto; font-size:24px">🔥</div>
+      </div>
+
+      <div class="today-card">
+        <div class="today-tag" id="today-tag">Próxima aula</div>
+        <div class="today-title" id="today-title">Carregando...</div>
+        <div class="today-desc" id="today-desc"></div>
+        <button class="btn-primary" onclick="startTodayLesson()">Começar sessão →</button>
+      </div>
+
+      <div class="modules-section">
+        <div class="section-title">Módulos do curso</div>
+        <div id="modules-list"></div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="showScreen('home')"><div class="nav-icon">🏠</div><div class="nav-label">Início</div></div>
+      <div class="nav-item" onclick="showScreen('profile')"><div class="nav-icon">📊</div><div class="nav-label">Progresso</div></div>
+    </div>
+  </div>
+
+  <!-- LESSON SCREEN -->
+  <div class="screen" id="screen-lesson">
+    <div class="lesson-header">
+      <div class="btn-back" onclick="confirmBack()">←</div>
+      <div class="lesson-progress">
+        <div class="lesson-progress-bar"><div class="lesson-progress-fill" id="lesson-progress-fill" style="width:0%"></div></div>
+        <div class="lesson-step-count" id="lesson-step-count"></div>
+      </div>
+    </div>
+    <div class="lesson-body" id="lesson-body"></div>
+    <div class="lesson-footer">
+      <button class="btn-next" id="btn-next" onclick="nextStep()">Continuar</button>
+    </div>
+  </div>
+
+  <!-- COMPLETION SCREEN -->
+  <div class="screen" id="screen-completion">
+    <div class="completion-screen">
+      <span class="completion-icon">🏆</span>
+      <h2 id="completion-title">Aula concluída!</h2>
+      <p id="completion-msg"></p>
+      <div class="xp-badge" id="completion-xp">+50 XP</div>
+      <button class="btn-primary" onclick="showScreen('home')" style="max-width:280px;margin:0 auto;display:block">Voltar ao início</button>
+    </div>
+  </div>
+
+  <!-- PROFILE SCREEN -->
+  <div class="screen" id="screen-profile">
+    <div style="overflow-y:auto; flex:1;">
+      <div class="profile-header">
+        <h2>Seu Progresso</h2>
+        <p id="profile-subtitle">Continue praticando todo dia.</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num" id="stat-streak">0</div><div class="stat-label">🔥 Dias seguidos</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-lessons">0</div><div class="stat-label">✅ Aulas feitas</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-xp">0</div><div class="stat-label">⚡ XP total</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-days">0</div><div class="stat-label">📅 Dias de curso</div></div>
+      </div>
+      <div class="achievements">
+        <div class="section-title">Conquistas</div>
+        <div id="achievements-list"></div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="showScreen('home')"><div class="nav-icon">🏠</div><div class="nav-label">Início</div></div>
+      <div class="nav-item active" onclick="showScreen('profile')"><div class="nav-icon">📊</div><div class="nav-label">Progresso</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// COURSE DATA
+// ═══════════════════════════════════════════════
+const COURSE = {
+  modules: [
+    {
+      id: 1, icon: "🎯", title: "Clareza Antes de Falar",
+      desc: "Estruture o pensamento antes de abrir a boca",
+      lessons: [
+        {
+          id: "1.1", title: "Por que você perde o fio", xp: 40,
+          steps: [
+            { type: "teoria", title: "O problema real", content: `Você não tem falta de vocabulário. Você tem excesso de pensamentos não organizados.\n\nQuando você abre a boca sem uma estrutura clara, o cérebro tenta processar tudo ao mesmo tempo — a ideia, a explicação, os exemplos, o que a pessoa pode pensar — e o resultado é uma avalanche de palavras.\n\n<strong>Isso não é defeito. É falta de método.</strong>` },
+            { type: "teoria", title: "A regra do ponto único", content: `Toda comunicação eficaz começa com uma única pergunta:\n\n<highlight>Qual é a UMA coisa que eu preciso que a pessoa entenda?</highlight>\n\nNão duas. Não três. Uma.\n\nSe você não consegue responder isso antes de falar, você vai se perder. Sempre.`, highlight: "Qual é a UMA coisa que eu preciso que a pessoa entenda?" },
+            { type: "exercicio", title: "Encontre seu ponto único", prompt: "Pense em algo que você precisou explicar a um cliente recentemente e enrolou. Escreva em UMA frase o que você queria que ele entendesse.", minWords: 5, maxWords: 25 },
+            { type: "teoria", title: "A estrutura OSC", content: `Toda mensagem clara tem três partes:\n\n<strong>O — O quê</strong> (o ponto principal)\n<strong>S — Se importa por quê</strong> (por que o ouvinte deveria ligar)\n<strong>C — Como/O que fazer</strong> (ação ou conclusão)\n\nVocê não precisa de mais do que isso.` },
+            { type: "exercicio", title: "Aplique a estrutura OSC", prompt: "Usando a estrutura OSC, escreva uma mensagem curta para um cliente explicando seu preço. O quê / Por que importa / O que fazer.", minWords: 20, maxWords: 60 },
+          ]
+        },
+        {
+          id: "1.2", title: "A armadilha do 'contexto demais'", xp: 40,
+          steps: [
+            { type: "teoria", title: "Você explica demais", content: `Existe um padrão em pessoas que têm dificuldade de se comunicar: elas acreditam que o ouvinte precisa de <strong>todo o contexto</strong> para entender a mensagem.\n\nNão precisa.\n\nO ouvinte precisa do contexto <strong>mínimo necessário</strong>. O resto é ruído.` },
+            { type: "exemplo", title: "Antes e depois", bad: "Então, tipo, ontem eu estava preparando o cardápio do cliente e aí eu pensei em fazer uma coisa diferente, porque ele sempre pede coisas repetitivas e aí eu resolvi propor uma mudança, sabe? Porque às vezes a gente fica naquela mesmice...", good: "Quero propor uma mudança no seu cardápio. Posso te mandar três opções novas amanhã?" },
+            { type: "exercicio", title: "Corte o contexto", prompt: "Escreva uma mensagem que você costuma mandar para clientes que é longa. Agora reescreva em no máximo 2 frases.", minWords: 10, maxWords: 40 },
+            { type: "pratica", title: "Exercício de voz: 30 segundos", timerSeconds: 30, prompt: "Fale em voz alta, por 30 segundos, sobre o que você faz como chef. Sem parar. Grave no celular se quiser. Depois responda: você chegou ao ponto principal em menos de 10 segundos?" },
+          ]
+        },
+        {
+          id: "1.3", title: "Falar para ser entendido, não para impressionar", xp: 50,
+          steps: [
+            { type: "teoria", title: "A obsessão com parecer inteligente te sabota", content: `Quando você tenta usar palavras sofisticadas, frases elaboradas, ou dar muitos detalhes para "provar" que sabe do que está falando — você perde a pessoa.\n\n<strong>Linguagem simples não é linguagem burra. É linguagem respeitosa.</strong>\n\nO maior comunicadores do mundo falam com vocabulário de 5ª série. Eles só têm ideias de nível universitário.` },
+            { type: "teoria", title: "A regra do avô", content: `Antes de falar algo, pergunte:\n\n<highlight>Meu avô de 70 anos entenderia isso na primeira vez que ouvisse?</highlight>\n\nSe não: simplifique.\nSe sim: fale.`, highlight: "Meu avô entenderia isso na primeira vez?" },
+            { type: "exercicio", title: "Simplifique sua apresentação", prompt: "Como você explica o que é um chef pessoal para alguém que nunca ouviu falar? Escreva em linguagem simples, sem jargões, como se fosse para um idoso.", minWords: 20, maxWords: 60 },
+            { type: "reflexao", title: "Reflexão do dia", prompt: "Em uma situação da semana passada, você falou mais do que precisava? Descreva o que aconteceu e como seria diferente com a regra do ponto único." },
+          ]
+        }
+      ]
+    },
+    {
+      id: 2, icon: "🗣️", title: "A Voz como Ferramenta",
+      desc: "Ritmo, pausa e tom que prendem a atenção",
+      lessons: [
+        {
+          id: "2.1", title: "O poder da pausa", xp: 45,
+          steps: [
+            { type: "teoria", title: "Você tem medo do silêncio", content: `Pessoas prolixas têm um medo inconsciente do silêncio. Quando a conversa para, elas preenchem com palavras — <em>"né?", "sabe?", "tipo", "então"</em>.\n\nEssas são <strong>muletas de fala</strong>. Elas enfraquecem sua mensagem e sinalizm insegurança.` },
+            { type: "teoria", title: "A pausa é poder", content: `Faça um teste: após dizer a coisa mais importante na sua fala, <strong>pare por 3 segundos</strong>. Não diga nada.\n\nEssa pausa:\n— Faz o ouvinte processar o que você disse\n— Dá peso à sua mensagem\n— Mostra que você está no controle\n\n<highlight>Quem controla a pausa controla a conversa.</highlight>`, highlight: "Quem controla a pausa controla a conversa." },
+            { type: "pratica", title: "Prática: pausa de 3 segundos", timerSeconds: 60, prompt: "Fale em voz alta por 1 minuto sobre um prato que você ama fazer. A cada frase importante, force uma pausa de 3 segundos antes de continuar. Conte mentalmente: 1... 2... 3..." },
+            { type: "exercicio", title: "Identifique suas muletas", prompt: "Quais são as palavras de preenchimento que você usa mais? (tipo, né, sabe, então, assim, meio que...) Liste-as e escreva como você vai perceber quando estiver usando.", minWords: 15, maxWords: 50 },
+          ]
+        },
+        {
+          id: "2.2", title: "Ritmo e velocidade", xp: 45,
+          steps: [
+            { type: "teoria", title: "Você fala rápido demais", content: `Falar rápido é um sinal de ansiedade. O ouvinte não consegue acompanhar, desconecta, e você perde a comunicação.\n\n<strong>A velocidade ideal</strong> de fala para comunicação clara é cerca de 130 palavras por minuto. A maioria das pessoas ansiosas fala 200+.` },
+            { type: "teoria", title: "Como desacelerar de verdade", content: `Não tente falar mais devagar pensando nisso durante a fala. Funciona assim:\n\n1. <strong>Respire antes de começar.</strong> Uma respiração profunda ativa o sistema nervoso parassimpático e literalmente desacelera sua fala.\n\n2. <strong>Fale até o fim da frase antes de pensar na próxima.</strong> Não olhe para o futuro da fala enquanto ainda está no presente dela.` },
+            { type: "pratica", title: "Prática: leitura lenta", timerSeconds: 90, prompt: "Leia em voz alta, o mais devagar que conseguir sem parecer artificial, o seguinte texto:\n\n'Eu sou chef pessoal. Meu trabalho é cozinhar na casa das famílias que atendo. Cada semana eu planejo um cardápio, faço as compras e preparo as refeições. Meu objetivo é que meus clientes comam bem, sem estresse, todo dia.'\n\nTente levar os 90 segundos completos." },
+            { type: "exercicio", title: "Escreva sua introdução ideal", prompt: "Escreva como você se apresentaria em 5 frases. Devagar. Clara. Sem exageros. Como se fosse ler para um cliente importante pela primeira vez.", minWords: 30, maxWords: 80 },
+          ]
+        },
+        {
+          id: "2.3", title: "Tonalidade e confiança", xp: 50,
+          steps: [
+            { type: "teoria", title: "A voz que inspira confiança", content: `Clientes pagam mais para quem soa seguro. Isso não significa ser arrogante — significa ser <strong>firme no que você diz</strong>.\n\nTrês características da voz confiante:\n— <strong>Termina frases com ponto</strong>, não com ponto de interrogação\n— <strong>Não pede desculpa</strong> por ocupar espaço\n— <strong>Sustenta o olhar</strong> (ou no texto, a afirmação)` },
+            { type: "exemplo", title: "Voz insegura vs confiante", bad: "Então... eu poderia cobrar tipo R$2000? Acho que vale esse valor, né? Não sei se você acha caro...", good: "Meu valor é R$2.000. Inclui planejamento, compras e preparo. Quer saber o que está dentro?" },
+            { type: "exercicio", title: "Reescreva com confiança", prompt: "Pense em uma mensagem que você mandou a um cliente que soou insegura ou com desculpas. Reescreva ela com voz firme e direta, sem perder a gentileza.", minWords: 20, maxWords: 60 },
+            { type: "reflexao", title: "Reflexão: onde você pede desculpa sem precisar?", prompt: "Liste 3 situações do seu trabalho onde você costuma se desculpar, minimizar ou hesitar antes de falar. Por que você faz isso?" },
+          ]
+        }
+      ]
+    },
+    {
+      id: 3, icon: "✍️", title: "Comunicação Escrita",
+      desc: "Mensagens curtas, claras e que vendem",
+      lessons: [
+        {
+          id: "3.1", title: "A mensagem de 3 linhas", xp: 50,
+          steps: [
+            { type: "teoria", title: "Ninguém lê mensagem longa", content: `No WhatsApp, Instagram, e-mail: se a mensagem é longa, a probabilidade de ser lida cai drasticamente.\n\nA regra de ouro para comunicação com clientes:\n\n<highlight>Nunca mande mais de 3 parágrafos. Nunca.</highlight>\n\nSe precisar de mais, agende uma ligação.`, highlight: "Nunca mais de 3 parágrafos." },
+            { type: "teoria", title: "A estrutura da mensagem poderosa", content: `<strong>Linha 1:</strong> O contexto em uma frase (o que está acontecendo)\n<strong>Linha 2:</strong> A informação ou pedido principal\n<strong>Linha 3:</strong> O próximo passo (o que você precisa deles ou o que vai fazer)\n\nPronto. Mais nada.` },
+            { type: "exercicio", title: "Escreva o cardápio da semana", prompt: "Escreva uma mensagem para um cliente apresentando o cardápio da semana. Use a estrutura das 3 linhas. Máximo 60 palavras.", minWords: 20, maxWords: 60 },
+            { type: "exercicio", title: "Reajuste de preço", prompt: "Escreva uma mensagem informando um cliente que seu preço vai aumentar no próximo mês. Clara, direta, sem drama. Máximo 50 palavras.", minWords: 15, maxWords: 50 },
+          ]
+        },
+        {
+          id: "3.2", title: "Escrever para convencer", xp: 55,
+          steps: [
+            { type: "teoria", title: "Persuasão não é manipulação", content: `Persuadir é ajudar a pessoa a tomar uma decisão que é boa para ela. Você não precisa mentir, exagerar ou pressionar.\n\nVocê precisa mostrar:\n— <strong>O resultado que a pessoa vai ter</strong>\n— <strong>Por que você especificamente pode entregar isso</strong>\n— <strong>O que ela perde se não agir</strong>` },
+            { type: "teoria", title: "A fórmula PAS", content: `<strong>P — Problema</strong>: Nomeia a dor do cliente\n<strong>A — Agitação</strong>: Mostra o impacto desse problema\n<strong>S — Solução</strong>: Apresenta sua oferta como saída\n\nEssa fórmula funciona para posts, mensagens de vendas, conversas.` },
+            { type: "exercicio", title: "Escreva com a fórmula PAS", prompt: "Escreva um texto de 4-6 frases usando PAS para vender seus serviços de chef pessoal para uma família ocupada.", minWords: 30, maxWords: 80 },
+            { type: "reflexao", title: "O que te trava ao vender?", prompt: "Qual é a parte da comunicação de vendas que você mais evita ou sente mais dificuldade? Descreva e diga por que acha que isso acontece.", minWords: 20 },
+          ]
+        },
+        {
+          id: "3.3", title: "Clareza em situações difíceis", xp: 60,
+          steps: [
+            { type: "teoria", title: "Comunicação difícil que você adia", content: `Dar um limite a um cliente. Recusar um pedido. Cobrar um atraso. Essas são as comunicações que as pessoas prolixas mais enrolam — porque tentam suavizar demais e acabam sem transmitir a mensagem.\n\n<strong>Ser direta não é ser grossa. É ser respeitosa com o tempo de todos.</strong>` },
+            { type: "exemplo", title: "Recusar um pedido", bad: "Então, ué, eu tentaria fazer, mas é que tipo eu não sei muito bem esse prato e aí talvez ficasse ruim, sabe? Porque eu nunca fiz assim e... não sei.", good: "Esse prato não está no meu repertório ainda. Posso sugerir três alternativas parecidas que ficam excelentes?" },
+            { type: "exercicio", title: "Escreva uma recusa gentil", prompt: "Um cliente pediu que você trabalhasse num feriado sem pagar adicional. Escreva uma mensagem recusando de forma direta e respeitosa. Sem rodeios.", minWords: 15, maxWords: 45 },
+            { type: "exercicio", title: "Cobrança de atraso", prompt: "Um cliente está 10 dias atrasado no pagamento. Escreva a mensagem de cobrança — firme, sem drama, sem desculpas pelo incomodo.", minWords: 15, maxWords: 40 },
+          ]
+        }
+      ]
+    },
+    {
+      id: 4, icon: "🧠", title: "Estrutura de Pensamento",
+      desc: "Organize ideias antes de falar ou escrever",
+      lessons: [
+        {
+          id: "4.1", title: "O mapa antes do território", xp: 55,
+          steps: [
+            { type: "teoria", title: "Pensar antes de falar é uma habilidade", content: `Pessoas que se comunicam bem não são mais inteligentes. Elas simplesmente têm o hábito de <strong>organizar mentalmente antes de abrir a boca</strong>.\n\nIsso pode ser treinado. Leva 3 a 5 semanas de prática diária para se tornar automático.` },
+            { type: "teoria", title: "O método dos 3 pontos", content: `Antes de responder qualquer pergunta importante, siga esse ritual:\n\n1. <strong>Respire.</strong> Compre 2 segundos.\n2. <strong>Pense:</strong> "Qual é minha resposta em uma frase?"\n3. <strong>Fale a resposta.</strong> Depois, se precisar, expanda com no máximo 2 pontos de suporte.\n\n<highlight>Resposta primeiro. Explicação depois. Nunca o contrário.</highlight>`, highlight: "Resposta primeiro. Explicação depois." },
+            { type: "pratica", title: "Prática oral: perguntas rápidas", timerSeconds: 120, prompt: "Responda cada uma dessas perguntas em voz alta em no máximo 2 frases:\n1. Por que você se tornou chef pessoal?\n2. Qual é o seu diferencial?\n3. Como você resolve um cliente difícil?\n4. Qual o seu prato mais pedido?\n\nUse o método: resposta primeiro, explicação depois." },
+            { type: "exercicio", title: "Escreva suas respostas", prompt: "Escolha uma das 4 perguntas acima e escreva a resposta ideal — máximo 3 frases. Resposta direta primeiro.", minWords: 15, maxWords: 50 },
+          ]
+        },
+        {
+          id: "4.2", title: "Contar histórias com propósito", xp: 60,
+          steps: [
+            { type: "teoria", title: "Histórias vendem. Mas têm que ter ponto.", content: `Contar história é uma das ferramentas mais poderosas de comunicação. O problema é quando você conta história <strong>sem saber onde quer chegar</strong>.\n\nAntes de qualquer história, decida: <strong>qual é a moral? O que eu quero que a pessoa sinta ou entenda ao final?</strong>` },
+            { type: "teoria", title: "A estrutura da história em 4 partes", content: `<strong>1. Situação</strong> — o contexto em uma frase (onde/quando/quem)\n<strong>2. Complicação</strong> — o problema ou desafio\n<strong>3. Virada</strong> — o que você fez diferente\n<strong>4. Resultado</strong> — o que aconteceu e o que isso significa\n\nTempo total ideal: 90 segundos falado, 4 frases escrito.` },
+            { type: "exercicio", title: "Sua história de transformação", prompt: "Conte uma história de um cliente seu usando a estrutura das 4 partes (Situação / Complicação / Virada / Resultado). Máximo 5 frases.", minWords: 30, maxWords: 90 },
+            { type: "pratica", title: "Conte em voz alta", timerSeconds: 90, prompt: "Conte a mesma história em voz alta. Você tem 90 segundos. Não pode passar disso. Foque em terminar antes do tempo acabar." },
+          ]
+        },
+        {
+          id: "4.3", title: "Comunicação no Instagram", xp: 65,
+          steps: [
+            { type: "teoria", title: "Post que para o scroll", content: `No Instagram, você tem 1.5 segundos para fazer a pessoa parar de rolar a tela. Isso significa que a <strong>primeira frase do seu post</strong> é a mais importante de todas.\n\nEla precisa:\n— Fazer uma pergunta que a pessoa já está se fazendo, ou\n— Fazer uma afirmação surpreendente, ou\n— Nomear um problema específico` },
+            { type: "exemplo", title: "Primeiras frases que funcionam", good: "Você paga R$3000 de restaurante por mês sem perceber.\n\nA maioria das famílias que atendo gastava isso em alimentação fora antes de me contratar.\n\nAgora gastam menos e comem melhor. Todo dia.\n\nQuer saber como funciona? ↓", bad: "Oi gente! Hoje vim falar sobre meu trabalho como chef pessoal que eu amo muito fazer porque é super especial pra mim..." },
+            { type: "exercicio", title: "Escreva um post completo", prompt: "Escreva um post para o Instagram sobre sua especialidade como chef. Use: 1ª frase que para o scroll + situação/problema + sua solução + CTA. Máximo 80 palavras.", minWords: 40, maxWords: 80 },
+            { type: "reflexao", title: "Revisão do módulo", prompt: "Qual das técnicas dos últimos 4 módulos você sente mais urgência em praticar? Por que ela é difícil para você especificamente?", minWords: 20 },
+          ]
+        }
+      ]
+    },
+    {
+      id: 5, icon: "💼", title: "Comunicação com Clientes",
+      desc: "Negociação, preço e gestão de expectativas",
+      lessons: [
+        {
+          id: "5.1", title: "Falar de preço sem gaguejar", xp: 65,
+          steps: [
+            { type: "teoria", title: "Por que o preço trava", content: `Você hesita ao falar seu preço porque, inconscientemente, <strong>você ainda está negociando com você mesma</strong> se o valor é justo.\n\nIsso aparece na voz, no ritmo, nas palavras de desculpa. E o cliente sente.\n\nA solução não é técnica de negociação. É <strong>internalizar que seu preço é justo</strong>.` },
+            { type: "teoria", title: "O protocolo do preço", content: `Quando alguém perguntar seu preço:\n\n1. Fale o número diretamente, sem rodeios\n2. Em seguida, diga o que está incluído (não o que NÃO está)\n3. Pare. Não justifique.\n\n<highlight>Quem justifica preço sem ser perguntado, demonstra insegurança.</highlight>`, highlight: "Quem justifica preço sem ser perguntado demonstra insegurança." },
+            { type: "pratica", title: "Prática: falando o preço", timerSeconds: 60, prompt: "Fale seu preço em voz alta 5 vezes. Com pausa de 3 segundos após o número. Sem adicionar 'né?', 'acho que', ou qualquer explicação.\n\nRepita até soar natural." },
+            { type: "exercicio", title: "Apresentação de proposta", prompt: "Escreva uma proposta completa para um novo cliente, do zero. Inclua: o que você faz, o que está incluído, o preço, e os próximos passos. Direto. Sem desculpas.", minWords: 40, maxWords: 100 },
+          ]
+        },
+        {
+          id: "5.2", title: "Lidar com objeções", xp: 65,
+          steps: [
+            { type: "teoria", title: "Objeção não é rejeição", content: `Quando um cliente diz "está caro" ou "deixa eu pensar", ele não está dizendo não. Ele está dizendo <strong>"não entendi o valor ainda"</strong>.\n\nSua função não é baixar o preço. É ajudá-lo a entender o valor.` },
+            { type: "teoria", title: "A técnica do espelhamento", content: `Quando ouvir uma objeção:\n\n1. <strong>Repita a objeção</strong> como pergunta: "Caro em relação ao quê?"\n2. <strong>Ouça a resposta</strong> real\n3. <strong>Responda o que foi dito</strong>, não o que você imaginou que seria dito\n\nA maioria das objeções some quando a pessoa se sente realmente ouvida.` },
+            { type: "exercicio", title: "Responda as 3 objeções mais comuns", prompt: "Escreva respostas para: (1) 'Está caro' (2) 'Deixa eu pensar' (3) 'Tenho uma amiga que cobra menos'. Uma resposta para cada. Direta, sem drama.", minWords: 40, maxWords: 100 },
+            { type: "reflexao", title: "Sua objeção interna", prompt: "Qual objeção de cliente te paralisa mais? Por que você acha que ela te afeta tanto? Seja honesta.", minWords: 20 },
+          ]
+        },
+        {
+          id: "5.3", title: "Fechar e manter clientes", xp: 70,
+          steps: [
+            { type: "teoria", title: "O fechamento simples", content: `Você não precisa de técnica de vendas. Você precisa fazer a <strong>pergunta de fechamento</strong>.\n\nDepois de apresentar sua proposta, a última frase é sempre:\n\n<highlight>"Você quer começar por quando?"</highlight>\n\nNão: "O que você acha?". Não: "Faz sentido?". Pergunte quando, não se.`, highlight: '"Você quer começar por quando?"' },
+            { type: "teoria", title: "Manter o cliente com comunicação proativa", content: `Clientes que somem são clientes que não se sentem lembrados. A regra:\n\n— <strong>Uma mensagem de valor por semana</strong> (ideia, novidade, pergunta)\n— <strong>Uma revisão mensal</strong> do que foi feito\n— <strong>Antecipação de problemas</strong> antes que aconteçam\n\nIsso não é ser chato. É ser profissional.` },
+            { type: "exercicio", title: "Sequência de follow-up", prompt: "Escreva 3 mensagens de follow-up para um cliente que pediu proposta e ficou em silêncio. Mensagem 1 (3 dias depois), 2 (1 semana) e 3 (final). Cada uma em no máximo 3 frases.", minWords: 40, maxWords: 100 },
+            { type: "reflexao", title: "Conclusão do curso", prompt: "Qual foi a maior mudança no jeito que você pensa sobre comunicação após essas semanas? O que você vai fazer diferente a partir de amanhã?", minWords: 30 },
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let state = {
+  completedLessons: [],
+  xp: 0,
+  streak: 0,
+  lastCompletedDate: null,
+  totalDays: 0,
+  currentLesson: null,
+  currentStepIndex: 0,
+  answers: {},
+  timerInterval: null,
+  timerRunning: false,
+  timerSeconds: 0,
+};
+
+function saveState() {
+  try { localStorage.setItem('fd_state', JSON.stringify(state)); } catch(e) {}
+}
+function loadState() {
+  try {
+    const s = localStorage.getItem('fd_state');
+    if (s) { const p = JSON.parse(s); Object.assign(state, p); }
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  if (name === 'home') renderHome();
+  if (name === 'profile') renderProfile();
+}
+
+// ═══════════════════════════════════════════════
+// HOME RENDER
+// ═══════════════════════════════════════════════
+function renderHome() {
+  updateStreak();
+  renderTodayCard();
+  renderModules();
+  document.getElementById('streak-display').textContent = state.streak;
+  document.getElementById('streak-text').textContent = state.streak > 0 ? '' : '';
+}
+
+function getNextLesson() {
+  for (const mod of COURSE.modules) {
+    for (const lesson of mod.lessons) {
+      if (!state.completedLessons.includes(lesson.id)) return { mod, lesson };
+    }
+  }
+  return null;
+}
+
+function renderTodayCard() {
+  const next = getNextLesson();
+  if (!next) {
+    document.getElementById('today-tag').textContent = '🎓 Curso concluído';
+    document.getElementById('today-title').textContent = 'Você terminou o curso!';
+    document.getElementById('today-desc').textContent = 'Revise qualquer módulo para reforçar o aprendizado.';
+    return;
+  }
+  const { mod, lesson } = next;
+  document.getElementById('today-tag').textContent = `Módulo ${mod.id} · ${lesson.steps.length} passos`;
+  document.getElementById('today-title').textContent = lesson.title;
+  document.getElementById('today-desc').textContent = `${mod.title} — ${lesson.steps.length} exercícios, ~${Math.ceil(lesson.steps.length * 3)} min`;
+}
+
+function renderModules() {
+  const list = document.getElementById('modules-list');
+  list.innerHTML = '';
+  COURSE.modules.forEach((mod, mi) => {
+    const totalLessons = mod.lessons.length;
+    const done = mod.lessons.filter(l => state.completedLessons.includes(l.id)).length;
+    const isLocked = mi > 0 && COURSE.modules[mi-1].lessons.some(l => !state.completedLessons.includes(l.id));
+    const isCompleted = done === totalLessons;
+    const pct = Math.round((done / totalLessons) * 100);
+    const card = document.createElement('div');
+    card.className = `module-card${isLocked ? ' locked' : ''}${isCompleted ? ' completed' : ''}`;
+    card.innerHTML = `
+      <div class="module-icon">${mod.icon}</div>
+      <div class="module-info">
+        <h3>${mod.title}</h3>
+        <p>${done}/${totalLessons} aulas${isLocked ? ' · Bloqueado' : ''}</p>
+        <div class="module-progress-bar"><div class="module-progress-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="module-badge">${isCompleted ? '✅' : isLocked ? '🔒' : '→'}</div>
+    `;
+    if (!isLocked) card.onclick = () => startFirstAvailableLesson(mod);
+    list.appendChild(card);
+  });
+}
+
+function startFirstAvailableLesson(mod) {
+  const lesson = mod.lessons.find(l => !state.completedLessons.includes(l.id));
+  if (lesson) startLesson(lesson);
+}
+
+function startTodayLesson() {
+  const next = getNextLesson();
+  if (next) startLesson(next.lesson);
+}
+
+// ═══════════════════════════════════════════════
+// LESSON ENGINE
+// ═══════════════════════════════════════════════
+function startLesson(lesson) {
+  state.currentLesson = lesson;
+  state.currentStepIndex = 0;
+  state.answers = {};
+  clearTimer();
+  showScreen('lesson');
+  renderStep();
+}
+
+function renderStep() {
+  const lesson = state.currentLesson;
+  const step = lesson.steps[state.currentStepIndex];
+  const total = lesson.steps.length;
+  const pct = Math.round(((state.currentStepIndex) / total) * 100);
+
+  document.getElementById('lesson-progress-fill').style.width = pct + '%';
+  document.getElementById('lesson-step-count').textContent = `${state.currentStepIndex + 1} / ${total}`;
+
+  const body = document.getElementById('lesson-body');
+  body.innerHTML = '';
+
+  const typeLabels = { teoria: 'Teoria', exercicio: 'Exercício', pratica: 'Prática oral', reflexao: 'Reflexão', exemplo: 'Exemplo' };
+  const typeClasses = { teoria: 'type-teoria', exercicio: 'type-exercicio', pratica: 'type-pratica', reflexao: 'type-reflexao', exemplo: 'type-exercicio' };
+
+  let html = `<span class="step-type-badge ${typeClasses[step.type] || 'type-teoria'}">${typeLabels[step.type] || step.type}</span>`;
+  html += `<div class="step-title">${step.title}</div>`;
+
+  if (step.type === 'teoria') {
+    let content = step.content.replace(/\n/g, '<br>');
+    if (step.highlight) {
+      html += `<div class="step-content">${content}</div>`;
+      html += `<div class="highlight-box">"${step.highlight}"</div>`;
+    } else {
+      html += `<div class="step-content">${content}</div>`;
+    }
+  }
+
+  if (step.type === 'exemplo') {
+    html += `<div class="bad-box"><div class="ex-label">❌ Evite isso</div><p>${step.bad}</p></div>`;
+    html += `<div class="example-box"><div class="ex-label">✅ Assim funciona</div><p>${step.good}</p></div>`;
+  }
+
+  if (step.type === 'exercicio' || step.type === 'reflexao') {
+    html += `<div class="exercise-area">
+      <div class="exercise-prompt"><div class="prompt-label">📝 Sua tarefa</div><p>${step.prompt}</p></div>
+      <textarea id="exercise-input" placeholder="Escreva aqui..." rows="5" oninput="onTextInput(this)">${state.answers[state.currentStepIndex] || ''}</textarea>
+      <div class="word-count" id="word-count">0 palavras</div>
+      <div id="ai-feedback-area"></div>
+    </div>`;
+  }
+
+  if (step.type === 'pratica') {
+    html += `<div class="exercise-area">
+      <div class="exercise-prompt"><div class="prompt-label">🎤 Tarefa oral</div><p>${step.prompt}</p></div>
+      <div class="timer-ring">
+        <div class="timer-circle">
+          <div class="timer-number" id="timer-display">${formatTimer(step.timerSeconds)}</div>
+          <div class="timer-label">segundos</div>
+        </div>
+        <div class="timer-btns">
+          <button class="btn-timer" id="btn-start-timer" onclick="startTimer(${step.timerSeconds})">▶ Iniciar</button>
+          <button class="btn-timer" onclick="resetTimer(${step.timerSeconds})">↺ Reset</button>
+        </div>
+      </div>
+      <textarea id="exercise-input" placeholder="Descreva como foi (opcional)..." rows="3" oninput="onTextInput(this)"></textarea>
+    </div>`;
+    state.timerSeconds = step.timerSeconds;
+  }
+
+  body.innerHTML = html;
+  updateNextBtn();
+
+  if (step.type === 'exercicio' || step.type === 'reflexao') {
+    const ta = document.getElementById('exercise-input');
+    if (ta) updateWordCount(ta);
+  }
+}
+
+function onTextInput(ta) {
+  state.answers[state.currentStepIndex] = ta.value;
+  updateWordCount(ta);
+  updateNextBtn();
+}
+
+function updateWordCount(ta) {
+  const words = ta.value.trim().split(/\s+/).filter(w => w.length > 0).length;
+  const wc = document.getElementById('word-count');
+  if (wc) wc.textContent = `${words} palavra${words !== 1 ? 's' : ''}`;
+}
+
+function updateNextBtn() {
+  const btn = document.getElementById('btn-next');
+  const lesson = state.currentLesson;
+  const step = lesson.steps[state.currentStepIndex];
+  const isLast = state.currentStepIndex === lesson.steps.length - 1;
+  btn.textContent = isLast ? '🏆 Concluir aula' : 'Continuar';
+
+  if (step.type === 'exercicio' || step.type === 'reflexao') {
+    const ta = document.getElementById('exercise-input');
+    const words = ta ? ta.value.trim().split(/\s+/).filter(w => w.length > 0).length : 0;
+    const min = step.minWords || 5;
+    btn.disabled = words < min;
+  } else {
+    btn.disabled = false;
+  }
+}
+
+async function nextStep() {
+  const lesson = state.currentLesson;
+  const step = lesson.steps[state.currentStepIndex];
+  const isLast = state.currentStepIndex === lesson.steps.length - 1;
+
+  if ((step.type === 'exercicio' || step.type === 'reflexao') && state.answers[state.currentStepIndex]) {
+    await getAIFeedback(step, state.answers[state.currentStepIndex]);
+    return;
+  }
+
+  if (isLast) {
+    completeLesson();
+  } else {
+    state.currentStepIndex++;
+    clearTimer();
+    renderStep();
+  }
+}
+
+async function getAIFeedback(step, userAnswer) {
+  const btn = document.getElementById('btn-next');
+  btn.disabled = true;
+  btn.textContent = 'Analisando...';
+
+  const fbArea = document.getElementById('ai-feedback-area');
+  if (fbArea) {
+    fbArea.innerHTML = `<div class="ai-feedback"><div class="fb-label"><div class="spinner"></div> Feedback da IA</div><div class="fb-text">Analisando sua resposta...</div></div>`;
+  }
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 300,
+        messages: [{
+          role: "user",
+          content: `Você é um coach de comunicação. A tarefa era: "${step.prompt}"\n\nA resposta da aluna foi: "${userAnswer}"\n\nDê um feedback CURTO (máximo 4 frases) em português brasileiro, sendo:\n1. Um ponto positivo específico\n2. Um ponto para melhorar com sugestão concreta\n3. Uma nota de 1-10\n\nSeja direto, sem papo de coach, sem elogios genéricos.`
+        }]
+      })
+    });
+    const data = await res.json();
+    const feedback = data.content?.[0]?.text || "Boa resposta! Continue praticando.";
+    if (fbArea) {
+      fbArea.innerHTML = `<div class="ai-feedback"><div class="fb-label">✦ Feedback</div><div class="fb-text">${feedback.replace(/\n/g, '<br>')}</div></div>`;
+    }
+  } catch(e) {
+    if (fbArea) fbArea.innerHTML = '';
+  }
+
+  const isLast = state.currentStepIndex === state.currentLesson.steps.length - 1;
+  btn.disabled = false;
+  btn.textContent = isLast ? '🏆 Concluir aula' : 'Continuar';
+  btn.onclick = () => {
+    if (isLast) completeLesson();
+    else { state.currentStepIndex++; clearTimer(); renderStep(); }
+  };
+}
+
+function completeLesson() {
+  const lesson = state.currentLesson;
+  if (!state.completedLessons.includes(lesson.id)) {
+    state.completedLessons.push(lesson.id);
+    state.xp += lesson.xp;
+    updateStreakOnComplete();
+  }
+  saveState();
+  showCompletionScreen(lesson);
+}
+
+function updateStreakOnComplete() {
+  const today = new Date().toDateString();
+  if (state.lastCompletedDate !== today) {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (state.lastCompletedDate === yesterday.toDateString()) {
+      state.streak++;
+    } else {
+      state.streak = 1;
+    }
+    state.lastCompletedDate = today;
+    state.totalDays++;
+  }
+}
+
+function updateStreak() {
+  const today = new Date().toDateString();
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (state.lastCompletedDate && state.lastCompletedDate !== today && state.lastCompletedDate !== yesterday.toDateString()) {
+    state.streak = 0;
+    saveState();
+  }
+}
+
+function showCompletionScreen(lesson) {
+  clearTimer();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-completion').classList.add('active');
+  document.getElementById('completion-title').textContent = 'Aula concluída!';
+  document.getElementById('completion-msg').textContent = `"${lesson.title}" — continue praticando amanhã.`;
+  document.getElementById('completion-xp').textContent = `+${lesson.xp} XP`;
+}
+
+// ═══════════════════════════════════════════════
+// TIMER
+// ═══════════════════════════════════════════════
+function startTimer(total) {
+  if (state.timerRunning) return;
+  state.timerRunning = true;
+  let remaining = state.timerSeconds || total;
+  const btn = document.getElementById('btn-start-timer');
+  if (btn) { btn.textContent = '⏸ Pausar'; btn.classList.add('active'); btn.onclick = () => pauseTimer(); }
+
+  state.timerInterval = setInterval(() => {
+    remaining--;
+    state.timerSeconds = remaining;
+    const d = document.getElementById('timer-display');
+    if (d) d.textContent = formatTimer(remaining);
+    if (remaining <= 0) {
+      clearTimer();
+      const d2 = document.getElementById('timer-display');
+      if (d2) d2.textContent = '✓';
+      const b = document.getElementById('btn-start-timer');
+      if (b) { b.textContent = '✅ Feito'; b.classList.add('active'); }
+      const btn2 = document.getElementById('btn-next');
+      if (btn2) btn2.disabled = false;
+    }
+  }, 1000);
+}
+
+function pauseTimer() {
+  clearTimer();
+  state.timerRunning = false;
+  const btn = document.getElementById('btn-start-timer');
+  if (btn) { btn.textContent = '▶ Continuar'; btn.classList.remove('active'); btn.onclick = () => startTimer(state.timerSeconds); }
+}
+
+function resetTimer(total) {
+  clearTimer();
+  state.timerSeconds = total;
+  const d = document.getElementById('timer-display');
+  if (d) d.textContent = formatTimer(total);
+  const btn = document.getElementById('btn-start-timer');
+  if (btn) { btn.textContent = '▶ Iniciar'; btn.classList.remove('active'); btn.onclick = () => startTimer(total); }
+}
+
+function clearTimer() {
+  if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
+  state.timerRunning = false;
+}
+
+function formatTimer(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
+
+// ═══════════════════════════════════════════════
+// PROFILE
+// ═══════════════════════════════════════════════
+function renderProfile() {
+  document.getElementById('stat-streak').textContent = state.streak;
+  document.getElementById('stat-lessons').textContent = state.completedLessons.length;
+  document.getElementById('stat-xp').textContent = state.xp;
+  document.getElementById('stat-days').textContent = state.totalDays;
+
+  const totalLessons = COURSE.modules.reduce((a, m) => a + m.lessons.length, 0);
+  document.getElementById('profile-subtitle').textContent = `${state.completedLessons.length}/${totalLessons} aulas concluídas`;
+
+  const achievements = [
+    { icon: '🎯', title: 'Primeiro Passo', desc: 'Complete sua primeira aula', unlocked: state.completedLessons.length >= 1 },
+    { icon: '🔥', title: '3 Dias Seguidos', desc: 'Pratique 3 dias consecutivos', unlocked: state.streak >= 3 },
+    { icon: '💬', title: 'Comunicadora', desc: 'Complete o Módulo 1', unlocked: COURSE.modules[0].lessons.every(l => state.completedLessons.includes(l.id)) },
+    { icon: '🗣️', title: 'Voz de Ouro', desc: 'Complete o Módulo 2', unlocked: COURSE.modules[1].lessons.every(l => state.completedLessons.includes(l.id)) },
+    { icon: '✍️', title: 'Escrita Direta', desc: 'Complete o Módulo 3', unlocked: COURSE.modules[2].lessons.every(l => state.completedLessons.includes(l.id)) },
+    { icon: '🔥', title: '7 Dias Seguidos', desc: 'Pratique 7 dias consecutivos', unlocked: state.streak >= 7 },
+    { icon: '⚡', title: '500 XP', desc: 'Acumule 500 XP', unlocked: state.xp >= 500 },
+    { icon: '🏆', title: 'Curso Completo', desc: 'Conclua todos os módulos', unlocked: state.completedLessons.length >= 15 },
+  ];
+
+  const list = document.getElementById('achievements-list');
+  list.innerHTML = achievements.map(a => `
+    <div class="achievement-item${a.unlocked ? '' : ' locked'}">
+      <div class="ach-icon">${a.icon}</div>
+      <div class="ach-info"><h4>${a.title}</h4><p>${a.desc}</p></div>
+      ${a.unlocked ? '<div style="font-size:18px">✅</div>' : ''}
+    </div>
+  `).join('');
+}
+
+function confirmBack() {
+  clearTimer();
+  showScreen('home');
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+loadState();
+renderHome();
+</script>
+</body>
+</html>
